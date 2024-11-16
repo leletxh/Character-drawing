@@ -1,0 +1,73 @@
+name: Python application
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_deploy:
+
+    runs-on: windows-latest
+
+    env:
+      Nuitka_OPTIONS: "--onefile --standalone --include-package=tkinter --include-package=PIL --windows-uac-admin --output-filename=app.exe main.py --assume-yes-for-downloads --show-progress --jobs=16"
+      APP_BRANCH: "app"
+
+    steps:
+    - name: 创建python3.10
+      uses: actions/checkout@v4
+    - name: 启动环境
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: 安装依赖
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install nuitka
+    - name: 构建
+      run: |
+         nuitka ${{ env.Nuitka_OPTIONS }}
+    - name: 发布
+      id: rename-and-move
+      shell: pwsh
+      run: |
+        git pull origin main
+        $timestamp = (Get-Date).ToString("yyyy-MM-dd_HH-mm-ss")
+        $newFileName = "${timestamp}_Character_drawing.exe"
+        $originalFilePath = "app.exe"
+        $newFilePath = Join-Path -Path "." -ChildPath $newFileName
+        $newFilePathInApps = Join-Path -Path "apps" -ChildPath $newFileName
+        Write-Output "Timestamp: $timestamp"
+        Write-Output "New file name: $newFileName"
+        Write-Output "Original file path: $originalFilePath"
+        Write-Output "New file path: $newFilePath"
+        Write-Output "New file path in apps: $newFilePathInApps"
+        if (Test-Path -Path $originalFilePath) {
+            Move-Item -Path $originalFilePath -Destination $newFilePath
+            Write-Output "File has been renamed to: $newFilePath"
+            if (-Not (Test-Path -Path "apps")) {
+                New-Item -ItemType Directory -Path "apps"
+                Write-Output "Directory 'apps' has been created."
+            }
+            if (Test-Path -Path $newFilePathInApps) {
+                Remove-Item -Path $newFilePathInApps -Force
+                Write-Output "Existing file $newFilePathInApps has been removed."
+            }
+        
+            Move-Item -Path $newFilePath -Destination $newFilePathInApps
+            Write-Output "File has been moved to: $newFilePathInApps"
+            echo "::set-output name=newFileName::$newFileName"
+        }
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git checkout main || git checkout -b main
+        git add apps/$newFileName
+        git commit -m "Add new build: $newFileName"
+        git push https://$ACTION_TOKEN@github.com/${{ github.repository }}.git main
