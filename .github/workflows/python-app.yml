@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-latest
 
     env:
-      Nuitka_OPTIONS: "--onefile --standalone --include-package=tkinter --include-package=PIL  --plugin-enable=tk-inter --windows-uac-admin --output-filename=app.exe main.py --assume-yes-for-downloads --show-progress --jobs=16"
+      Nuitka_OPTIONS: "--onefile --windows-disable-console --standalone --include-package=tkinter --include-package=PIL  --plugin-enable=tk-inter --windows-uac-admin --output-filename=app.exe main.py --assume-yes-for-downloads --show-progress --jobs=16"
       APP_BRANCH: "app"
 
     steps:
