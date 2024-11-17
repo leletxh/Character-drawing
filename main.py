@@ -12,7 +12,7 @@ class ImageCropperTab:
         self.canvas.pack()
         self.load_button = tk.Button(parent, text="打开图片", command=self.load_image)
         self.load_button.pack()
-        self.crop_button = tk.Button(parent, text="裁剪或保存", command=self.crop_and_save)
+        self.crop_button = tk.Button(parent, text="裁剪或处理", command=self.crop_and_save)
         self.crop_button.pack()
         self.start_x = None
         self.start_y = None
@@ -91,32 +91,14 @@ class ImageCropperTab:
                     resized_cropped_img.save(save_path)
                     print(f"Image saved to {save_path}")
 
-class AsciiArtTab:
-    def __init__(self, parent):
-        self.parent = parent
-        self.load_button = tk.Button(parent, text="打开图片", command=self.load_image)
-        self.load_button.pack()
-        self.image_path = None
-
-    def load_image(self):
-        self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
-        if self.image_path:
-            image_to_ascii(self.image_path)
-
-def image_to_ascii(image_path, char='#'):
-    with Image.open(image_path) as img:
-        width, height = img.size
-        for y in range(height):
-            for x in range(width):
-                r, g, b = img.getpixel((x, y))
-                print(f'\033[38;2;{r};{g};{b}m{char}\033[0m', end='')
-            print('\033[0m')
 
 class CppGeneratorTab:
     def __init__(self, parent):
         self.parent = parent
         self.load_button = tk.Button(parent, text="打开图片", command=self.load_image)
         self.load_button.pack()
+        self.tip = tk.Label(parent, text="请打开处理好图片")
+        self.tip.pack()
         self.image_path = None
 
     def load_image(self):
@@ -130,6 +112,7 @@ class CppGeneratorTab:
             )
             if output_file:
                 generate_cpp_program(self.image_path, output_file)
+                messagebox.showinfo("C++ 程序已生成", f"C++ 程序已生成并保存到 {output_file}")
 
 def generate_cpp_program(image_path, output_file):
     with Image.open(image_path) as img:
@@ -146,12 +129,12 @@ def generate_cpp_program(image_path, output_file):
     with open(output_file, 'w') as f:
         f.write('#include <iostream>\n#include <vector>\n#include <string>\n\n')
         f.write('struct Color {\n    int r, g, b;\n};\n\n')
-        f.write(f'const std::vector<std::vector<Color>> img = {{\n')
+        f.write('const std::vector<std::vector<Color>> img = {{\n')
         for y in range(height):
             f.write('    {')
             f.write(', '.join(f'{{ {color["r"]}, {color["g"]}, {color["b"]} }}' for color in image_data[y]))
             f.write('},\n')
-        f.write('};\n\n')
+        f.write('}};\n\n')
         f.write('void print_img(const std::vector<std::vector<Color>>& img_data) {\n')
         f.write('    for (const auto& row : img_data) {\n')
         f.write('        for (const auto& color : row) {\n')
@@ -160,11 +143,35 @@ def generate_cpp_program(image_path, output_file):
         f.write('        std::cout << std::endl;\n')
         f.write('    }\n')
         f.write('}\n\n')
-        f.write('int main() {\n    print_img(img);\n    return 0;\n}\n')
+        f.write('int main() {\n    system("color");\n    print_img(img);\n    return 0;\n}\n')
 
+class ImageToAsciiTab:
+    def __init__(self, parent):
+        self.parent = parent
+        self.load_button = tk.Button(parent, text="打开图片", command=self.get_ascii_img)
+        self.load_button.pack()
+        self.text_area = tk.Text(parent)
+        self.text_area.pack()
+        self.image_path = None
+
+    def get_ascii_img(self):
+        img = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
+        ascii_char = ['$', '@', 'B', '%', '8', '&', 'W', 'M', '#', '*', 'o', 'a', 'h', 'k', 'b', 'd', 'p', 'q', 'w', 'm', 'Z', 'O', '0', 'Q', 'L', 'C', 'J', 'U', 'Y', 'X', 'z', 'c', 'v', 'u', 'n', 'x', 'r', 'j', 'f', 't', '/', '\\', '|', '(', ')', '1', '{', '}', '[', ']', '?', '-', '_', '+', '~', '<', '>', 'i', '!', 'l', 'I', ';', ':', ',', '"', '^', '`', "'", '.', ' ']
+        im=Image.open(img)  
+        self.text_area.config(width=im.width)
+        txt=""  
+        for i in range(im.height):  
+            for j in range(im.width):  
+                r,g,b = im.getpixel((j,i))
+                gray=int((r+g+b)/3)
+                gray = round((69 / 256) * gray + (186 / 256))
+                txt+=ascii_char[int(gray)] 
+            txt+='\n'
+        self.text_area.delete(1.0, tk.END)
+        self.text_area.insert(tk.END, txt)
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("ANSL转移打印图片")
+    root.title("ANSL转义打印图片")
 
     notebook = ttk.Notebook(root)
     tab1 = ttk.Frame(notebook)
@@ -172,12 +179,12 @@ if __name__ == "__main__":
     tab3 = ttk.Frame(notebook)
 
     notebook.add(tab1, text="图片处理")
-    notebook.add(tab2, text="测试")
-    notebook.add(tab3, text="生成c++文件")
+    notebook.add(tab2, text="生成c++文件")
+    notebook.add(tab3, text="图片转字符")
     notebook.pack(expand=1, fill="both")
 
     image_cropper_tab = ImageCropperTab(tab1)
-    ascii_art_tab = AsciiArtTab(tab2)
-    cpp_generator_tab = CppGeneratorTab(tab3)
+    cpp_generator_tab = CppGeneratorTab(tab2)
+    image_to_ascii_tab = ImageToAsciiTab(tab3)
 
     root.mainloop()
