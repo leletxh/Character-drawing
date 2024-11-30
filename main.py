@@ -28,7 +28,8 @@ class ImageCropperTab:
         self.image_path = filedialog.askopenfilename(filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")])
         if self.image_path:
             self.img = Image.open(self.image_path)
-            self.img = self.img.resize((int(self.img.width * 0.3), int(self.img.height * 0.3)), Image.LANCZOS)  # 缩小图片便于显示
+            if self.img.width > 500 or self.img.height > 500:  # 如果图片尺寸过大，则缩小图片
+                self.img = self.img.resize((int(self.img.width * 0.3), int(self.img.height * 0.3)), Image.LANCZOS)  # 缩小图片便于显示
             self.photo = ImageTk.PhotoImage(self.img)
             self.canvas.config(width=self.img.width, height=self.img.height)
             self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo)
@@ -59,7 +60,7 @@ class ImageCropperTab:
                        max(self.start_x, self.end_x), max(self.start_y, self.end_y))
                 cropped_img = self.img.crop(box)
                 target_width = 100
-                target_height = int(target_width * 0.45)
+                target_height = int(target_width * 0.25)
                 resized_cropped_img = cropped_img.resize((target_width, target_height), Image.LANCZOS)
                 save_path = filedialog.asksaveasfilename(
                     title='Save Cropped Image',
@@ -80,7 +81,7 @@ class ImageCropperTab:
                 messagebox.showwarning("Warning", "Please load an image first.")
             else:
                 target_width = 100
-                target_height = int(target_width * 0.45)
+                target_height = int(target_width * 0.25)
                 resized_cropped_img = self.img.resize((target_width, target_height), Image.LANCZOS)
                 save_path = filedialog.asksaveasfilename(
                     title='Save Cropped Image',
