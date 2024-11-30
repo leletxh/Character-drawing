@@ -8,9 +8,9 @@ ANSL转义打印图片工具是一款基于Python的Tkinter图形界面应用，
 - Pillow 库（用于图像处理）
 ### 在开始使用前，请确保已正确安装上述所有依赖库。如果您没有安装Pillow，可以通过pip安装：
 
-'''shell
+``` shell
 pip install pillow
-'''
+```
 ### 或是下载apps文件夹中的构建版（最好下载倒数第二个，最新）
 ## 功能介绍
 ### 图片处理 (Image Cropper)
