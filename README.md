@@ -7,7 +7,7 @@ ANSL转义打印图片工具是一款基于Python的Tkinter图形界面应用，
 - Python 3.x 或以上版本
 - Tkinter 库（通常随Python一起安装）
 - Pillow 库（用于图像处理）
-或是直接下载编译好的
+- 或是直接下载编译好的
 ### 在开始使用前，请确保已正确安装上述所有依赖库。如果您没有安装Pillow，可以通过pip安装：
 
 ``` shell
